@@ -78,6 +78,7 @@ export default function HomeScreen({ navigation, route }) {
             if (data.clientes) await db.saveClientes(data.clientes);
             if (data.facturas_pendientes) await db.saveFacturas(data.facturas_pendientes);
             if (data.planes) await db.savePlanes(data.planes);
+            if (data.resumen_dia) await db.saveConfig('dailySummary', data.resumen_dia);
             
             // Sync pending operations
             const pendingOps = await db.getPendingOps();
