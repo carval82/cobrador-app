@@ -88,7 +88,7 @@ class DatabaseService {
     }
 
     async getFacturas() {
-        const rows = await this.db.getAllAsync('SELECT * FROM facturas WHERE estado = ? ORDER BY fecha_vencimiento', ['pendiente']);
+        const rows = await this.db.getAllAsync('SELECT * FROM facturas WHERE estado IN (?, ?, ?) ORDER BY fecha_vencimiento', ['pendiente', 'parcial', 'vencida']);
         return rows.map(row => JSON.parse(row.data));
     }
 
