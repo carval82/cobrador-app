@@ -55,7 +55,7 @@ export default function InvoicesScreen({ navigation }) {
                 </View>
             </View>
             <View style={styles.facturaInfo}>
-                <Text style={styles.clienteNombre}>{item.cliente?.nombre || 'Cliente'}</Text>
+                <Text style={styles.clienteNombre}>{item.cliente_nombre || item.cliente?.nombre || 'Cliente'}</Text>
                 <Text style={styles.facturaNumero}>Factura #{item.numero}</Text>
                 <Text style={styles.vencimiento}>
                     <Ionicons name="calendar-outline" size={12} color="#64748b" /> 
