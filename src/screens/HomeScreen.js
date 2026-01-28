@@ -73,12 +73,23 @@ export default function HomeScreen({ navigation, route }) {
                 response = await api.sync();
             }
             
+            console.log('Sync response:', JSON.stringify(response));
             const data = response.data || response;
+            console.log('Data to save:', JSON.stringify(data));
             
-            if (data.clientes) await db.saveClientes(data.clientes);
-            if (data.facturas_pendientes) await db.saveFacturas(data.facturas_pendientes);
+            if (data.clientes) {
+                console.log('Saving clientes:', data.clientes.length);
+                await db.saveClientes(data.clientes);
+            }
+            if (data.facturas_pendientes) {
+                console.log('Saving facturas:', data.facturas_pendientes.length);
+                await db.saveFacturas(data.facturas_pendientes);
+            }
             if (data.planes) await db.savePlanes(data.planes);
-            if (data.resumen_dia) await db.saveConfig('dailySummary', data.resumen_dia);
+            if (data.resumen_dia) {
+                console.log('Saving resumen_dia:', data.resumen_dia);
+                await db.saveConfig('dailySummary', data.resumen_dia);
+            }
             
             // Sync pending operations
             const pendingOps = await db.getPendingOps();
@@ -98,7 +109,8 @@ export default function HomeScreen({ navigation, route }) {
 
             await loadStats();
         } catch (error) {
-            Alert.alert('Error', 'Error al sincronizar: ' + error.message);
+            console.error('Sync error:', error);
+            Alert.alert('Error', 'Error al sincronizar: ' + (error.message || error.toString() || 'Error desconocido'));
         } finally {
             setRefreshing(false);
         }
