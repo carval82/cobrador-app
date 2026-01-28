@@ -17,10 +17,18 @@ import NetInfo from '@react-native-community/netinfo';
 
 export default function NewPaymentScreen({ route, navigation }) {
     const { factura } = route.params || {};
-    const [monto, setMonto] = useState(factura?.total?.toString() || '');
+    const [monto, setMonto] = useState(factura?.saldo?.toString() || factura?.total?.toString() || '');
+    const [metodoPago, setMetodoPago] = useState('efectivo');
     const [observaciones, setObservaciones] = useState('');
     const [loading, setLoading] = useState(false);
     const [location, setLocation] = useState(null);
+
+    const metodosPago = [
+        { id: 'efectivo', label: 'Efectivo', icon: 'cash-outline' },
+        { id: 'transferencia', label: 'Transferencia', icon: 'swap-horizontal-outline' },
+        { id: 'nequi', label: 'Nequi', icon: 'phone-portrait-outline' },
+        { id: 'daviplata', label: 'Daviplata', icon: 'phone-portrait-outline' },
+    ];
 
     useEffect(() => {
         getLocation();
@@ -62,6 +70,8 @@ export default function NewPaymentScreen({ route, navigation }) {
         const paymentData = {
             factura_id: factura.id,
             monto: parseFloat(monto),
+            metodo_pago: metodoPago,
+            fecha_pago: new Date().toISOString().split('T')[0],
             observaciones,
             latitud: location?.latitude || null,
             longitud: location?.longitude || null,
@@ -105,7 +115,7 @@ export default function NewPaymentScreen({ route, navigation }) {
                     <View style={styles.infoCard}>
                         <View style={styles.infoRow}>
                             <Text style={styles.infoLabel}>Cliente:</Text>
-                            <Text style={styles.infoValue}>{factura.cliente?.nombre}</Text>
+                            <Text style={styles.infoValue}>{factura.cliente_nombre || factura.cliente?.nombre}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.infoLabel}>Factura:</Text>
@@ -139,6 +149,34 @@ export default function NewPaymentScreen({ route, navigation }) {
                             placeholder="0"
                             placeholderTextColor="#64748b"
                         />
+                    </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Método de Pago *</Text>
+                    <View style={styles.metodosContainer}>
+                        {metodosPago.map((metodo) => (
+                            <TouchableOpacity
+                                key={metodo.id}
+                                style={[
+                                    styles.metodoBtn,
+                                    metodoPago === metodo.id && styles.metodoBtnActive
+                                ]}
+                                onPress={() => setMetodoPago(metodo.id)}
+                            >
+                                <Ionicons 
+                                    name={metodo.icon} 
+                                    size={20} 
+                                    color={metodoPago === metodo.id ? '#fff' : '#64748b'} 
+                                />
+                                <Text style={[
+                                    styles.metodoText,
+                                    metodoPago === metodo.id && styles.metodoTextActive
+                                ]}>
+                                    {metodo.label}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
                 </View>
 
@@ -268,6 +306,33 @@ const styles = StyleSheet.create({
         fontSize: 14,
         minHeight: 80,
         textAlignVertical: 'top',
+    },
+    metodosContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    metodoBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#0f172a',
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#334155',
+    },
+    metodoBtnActive: {
+        backgroundColor: '#10b981',
+        borderColor: '#10b981',
+    },
+    metodoText: {
+        color: '#64748b',
+        marginLeft: 6,
+        fontSize: 13,
+    },
+    metodoTextActive: {
+        color: '#fff',
     },
     locationInfo: {
         flexDirection: 'row',
