@@ -118,6 +118,26 @@ class DatabaseService {
         return rows.map(row => JSON.parse(row.data));
     }
 
+    async updateFacturaAfterPayment(facturaId, montoPagado) {
+        const row = await this.db.getFirstAsync('SELECT * FROM facturas WHERE id = ?', [facturaId]);
+        if (!row) return;
+        
+        const factura = JSON.parse(row.data);
+        const nuevoSaldo = Math.max(0, (factura.saldo || factura.total) - montoPagado);
+        
+        factura.saldo = nuevoSaldo;
+        if (nuevoSaldo <= 0) {
+            factura.estado = 'pagada';
+        } else if (nuevoSaldo < factura.total) {
+            factura.estado = 'parcial';
+        }
+        
+        await this.db.runAsync(
+            'UPDATE facturas SET estado = ?, data = ? WHERE id = ?',
+            [factura.estado, JSON.stringify(factura), facturaId]
+        );
+    }
+
     // Planes
     async savePlanes(planes) {
         await this.db.execAsync('DELETE FROM planes');

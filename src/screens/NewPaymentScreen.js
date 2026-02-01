@@ -82,12 +82,24 @@ export default function NewPaymentScreen({ route, navigation }) {
             const netInfo = await NetInfo.fetch();
             
             if (netInfo.isConnected) {
-                await api.registerPayment(paymentData);
-                Alert.alert('Éxito', 'Pago registrado correctamente', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                const response = await api.registerPayment(paymentData);
+                
+                // Verificar si es duplicado
+                if (response.duplicado) {
+                    Alert.alert('Aviso', 'Este pago ya fue registrado anteriormente', [
+                        { text: 'OK', onPress: () => navigation.goBack() }
+                    ]);
+                } else {
+                    // Actualizar factura localmente
+                    await db.updateFacturaAfterPayment(factura.id, parseFloat(monto));
+                    Alert.alert('Éxito', 'Pago registrado correctamente', [
+                        { text: 'OK', onPress: () => navigation.goBack() }
+                    ]);
+                }
             } else {
                 await db.addPendingOp('payment', paymentData);
+                // Actualizar factura localmente para evitar doble pago
+                await db.updateFacturaAfterPayment(factura.id, parseFloat(monto));
                 Alert.alert(
                     'Guardado Offline', 
                     'El pago se guardó localmente y se sincronizará cuando haya conexión',
@@ -95,8 +107,11 @@ export default function NewPaymentScreen({ route, navigation }) {
                 );
             }
         } catch (error) {
+            console.error('Error registrando pago:', error);
             // Si falla online, guardar offline
             await db.addPendingOp('payment', paymentData);
+            // Actualizar factura localmente para evitar doble pago
+            await db.updateFacturaAfterPayment(factura.id, parseFloat(monto));
             Alert.alert(
                 'Guardado Offline', 
                 'Error de conexión. El pago se guardó localmente.',
