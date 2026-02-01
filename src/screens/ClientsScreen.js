@@ -11,7 +11,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import db from '../services/database';
 
-export default function ClientsScreen({ navigation }) {
+export default function ClientsScreen({ navigation, route }) {
+    const proyecto = route.params?.proyecto;
     const [clientes, setClientes] = useState([]);
     const [filteredClientes, setFilteredClientes] = useState([]);
     const [search, setSearch] = useState('');
@@ -19,7 +20,7 @@ export default function ClientsScreen({ navigation }) {
 
     useEffect(() => {
         loadClientes();
-    }, []);
+    }, [proyecto]);
 
     useEffect(() => {
         if (search.trim()) {
@@ -37,7 +38,7 @@ export default function ClientsScreen({ navigation }) {
     const loadClientes = async () => {
         setRefreshing(true);
         try {
-            const data = await db.getClientes();
+            const data = await db.getClientes(proyecto?.id);
             setClientes(data);
             setFilteredClientes(data);
         } catch (error) {

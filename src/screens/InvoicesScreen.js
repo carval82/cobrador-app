@@ -10,18 +10,19 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import db from '../services/database';
 
-export default function InvoicesScreen({ navigation }) {
+export default function InvoicesScreen({ navigation, route }) {
+    const proyecto = route.params?.proyecto;
     const [facturas, setFacturas] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         loadFacturas();
-    }, []);
+    }, [proyecto]);
 
     const loadFacturas = async () => {
         setRefreshing(true);
         try {
-            const data = await db.getFacturas();
+            const data = await db.getFacturas(proyecto?.id);
             setFacturas(data);
         } catch (error) {
             console.error('Error loading facturas:', error);

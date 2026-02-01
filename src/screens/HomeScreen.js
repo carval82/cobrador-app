@@ -40,8 +40,8 @@ export default function HomeScreen({ navigation, route }) {
 
     const loadStats = async () => {
         try {
-            const clientes = await db.getClientes();
-            const facturas = await db.getFacturas();
+            const clientes = await db.getClientes(proyecto?.id);
+            const facturas = await db.getFacturas(proyecto?.id);
             const pendingCount = await db.getPendingCount();
             const summary = await db.getConfig('dailySummary');
 
@@ -203,7 +203,7 @@ export default function HomeScreen({ navigation, route }) {
             <View style={styles.actionsGrid}>
                 <TouchableOpacity 
                     style={styles.actionCard}
-                    onPress={() => navigation.navigate('Clients')}
+                    onPress={() => navigation.navigate('Clients', { proyecto })}
                 >
                     <View style={[styles.actionIcon, { backgroundColor: '#1e40af' }]}>
                         <Ionicons name="people" size={28} color="#fff" />
@@ -213,7 +213,7 @@ export default function HomeScreen({ navigation, route }) {
 
                 <TouchableOpacity 
                     style={styles.actionCard}
-                    onPress={() => navigation.navigate('Invoices')}
+                    onPress={() => navigation.navigate('Invoices', { proyecto })}
                 >
                     <View style={[styles.actionIcon, { backgroundColor: '#b45309' }]}>
                         <Ionicons name="receipt" size={28} color="#fff" />
