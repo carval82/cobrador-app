@@ -67,14 +67,15 @@ class DatabaseService {
     }
 
     async getClientes(proyectoId = null) {
-        let query = 'SELECT * FROM clientes';
-        let params = [];
+        let rows;
         if (proyectoId) {
-            query += ' WHERE proyecto_id = ?';
-            params.push(proyectoId);
+            rows = await this.db.getAllAsync(
+                'SELECT * FROM clientes WHERE proyecto_id = ? ORDER BY nombre',
+                [proyectoId]
+            );
+        } else {
+            rows = await this.db.getAllAsync('SELECT * FROM clientes ORDER BY nombre');
         }
-        query += ' ORDER BY nombre';
-        const rows = await this.db.getAllAsync(query, params);
         return rows.map(row => JSON.parse(row.data));
     }
 
@@ -95,18 +96,20 @@ class DatabaseService {
     }
 
     async getFacturas(proyectoId = null) {
-        let query, params;
+        let rows;
         if (proyectoId) {
-            query = `SELECT f.* FROM facturas f 
-                     INNER JOIN clientes c ON f.cliente_id = c.id 
-                     WHERE f.estado IN (?, ?, ?) AND c.proyecto_id = ?
-                     ORDER BY f.fecha_vencimiento`;
-            params = ['pendiente', 'parcial', 'vencida', proyectoId];
+            rows = await this.db.getAllAsync(
+                `SELECT f.* FROM facturas f 
+                 INNER JOIN clientes c ON f.cliente_id = c.id 
+                 WHERE f.estado IN ('pendiente', 'parcial', 'vencida') AND c.proyecto_id = ?
+                 ORDER BY f.fecha_vencimiento`,
+                [proyectoId]
+            );
         } else {
-            query = 'SELECT * FROM facturas WHERE estado IN (?, ?, ?) ORDER BY fecha_vencimiento';
-            params = ['pendiente', 'parcial', 'vencida'];
+            rows = await this.db.getAllAsync(
+                "SELECT * FROM facturas WHERE estado IN ('pendiente', 'parcial', 'vencida') ORDER BY fecha_vencimiento"
+            );
         }
-        const rows = await this.db.getAllAsync(query, params);
         return rows.map(row => JSON.parse(row.data));
     }
 
