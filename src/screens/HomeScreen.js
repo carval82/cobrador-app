@@ -88,7 +88,7 @@ export default function HomeScreen({ navigation, route }) {
             if (data.planes) await db.savePlanes(data.planes);
             if (data.resumen_dia) {
                 console.log('Saving resumen_dia:', data.resumen_dia);
-                await db.saveConfig('dailySummary', data.resumen_dia);
+                await db.setConfig('dailySummary', data.resumen_dia);
             }
             
             // Sync pending operations
