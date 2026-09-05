@@ -22,6 +22,7 @@ export default function AdminClienteFormScreen({ navigation, route }) {
     const [saving, setSaving] = useState(false);
     const [proyectos, setProyectos] = useState([]);
     const [cobradores, setCobradores] = useState([]);
+    const [planes, setPlanes] = useState([]);
     
     const [form, setForm] = useState({
         proyecto_id: cliente?.proyecto_id || '',
@@ -32,6 +33,8 @@ export default function AdminClienteFormScreen({ navigation, route }) {
         barrio: cliente?.barrio || '',
         estado: cliente?.estado || 'activo',
         cobrador_id: cliente?.cobrador_id || '',
+        tipo_alta: cliente?.tipo_alta || 'nuevo',
+        plan_servicio_id: '',
     });
 
     useEffect(() => {
@@ -45,6 +48,7 @@ export default function AdminClienteFormScreen({ navigation, route }) {
             if (response.success) {
                 setProyectos(response.proyectos);
                 setCobradores(response.cobradores);
+                setPlanes(response.planes || []);
             }
         } catch (error) {
             console.error('Error loading datos:', error);
@@ -134,6 +138,46 @@ export default function AdminClienteFormScreen({ navigation, route }) {
             </View>
 
             <ScrollView style={styles.content}>
+                {!isEdit && (
+                    <>
+                        <View style={styles.formGroup}>
+                            <Text style={styles.label}>Tipo de alta *</Text>
+                            <View style={styles.pickerContainer}>
+                                <Picker
+                                    selectedValue={form.tipo_alta}
+                                    onValueChange={(value) => setForm({...form, tipo_alta: value})}
+                                    style={styles.picker}
+                                    dropdownIconColor="#fff"
+                                >
+                                    <Picker.Item label="Cliente nuevo (mes libre)" value="nuevo" />
+                                    <Picker.Item label="Cliente antiguo (factura este mes)" value="antiguo" />
+                                </Picker>
+                            </View>
+                            <Text style={styles.hint}>
+                                {form.tipo_alta === 'nuevo'
+                                    ? 'Si entra el 1-15, la primera factura es el mes siguiente. Si entra después del 15, se corre un mes más.'
+                                    : 'Se genera automáticamente la factura del mes en curso al asignar un plan.'}
+                            </Text>
+                        </View>
+                        <View style={styles.formGroup}>
+                            <Text style={styles.label}>Plan (opcional)</Text>
+                            <View style={styles.pickerContainer}>
+                                <Picker
+                                    selectedValue={form.plan_servicio_id}
+                                    onValueChange={(value) => setForm({...form, plan_servicio_id: value})}
+                                    style={styles.picker}
+                                    dropdownIconColor="#fff"
+                                >
+                                    <Picker.Item label="Asignar después" value="" />
+                                    {planes.map(p => (
+                                        <Picker.Item key={p.id} label={`${p.nombre} - $${p.precio}`} value={p.id} />
+                                    ))}
+                                </Picker>
+                            </View>
+                        </View>
+                    </>
+                )}
+
                 <View style={styles.formGroup}>
                     <Text style={styles.label}>Proyecto *</Text>
                     <View style={styles.pickerContainer}>
@@ -305,6 +349,12 @@ const styles = StyleSheet.create({
         color: '#94a3b8',
         fontSize: 14,
         marginBottom: 8,
+    },
+    hint: {
+        color: '#64748b',
+        fontSize: 12,
+        marginTop: 8,
+        lineHeight: 16,
     },
     input: {
         backgroundColor: '#1e293b',

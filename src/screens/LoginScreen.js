@@ -17,8 +17,8 @@ import { useAuth } from '../context/AuthContext';
 
 const USER_TYPES = [
     { id: 'cobrador', label: 'Cobrador', icon: 'wallet-outline', color: '#10b981' },
-    { id: 'admin', label: 'Administrador', icon: 'shield-checkmark-outline', color: '#3b82f6' },
-    { id: 'cliente', label: 'Cliente', icon: 'person-outline', color: '#f59e0b' },
+    { id: 'admin', label: 'Admin', icon: 'shield-checkmark-outline', color: '#3b82f6' },
+    { id: 'socio', label: 'Socio', icon: 'people-outline', color: '#8b5cf6' },
 ];
 
 export default function LoginScreen() {
@@ -29,7 +29,7 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const { login, loginAdmin, loginCliente } = useAuth();
+    const { login, loginAdmin, loginSocio } = useAuth();
 
     const handleLogin = async () => {
         setLoading(true);
@@ -48,13 +48,13 @@ export default function LoginScreen() {
                     return;
                 }
                 await loginAdmin(email, password);
-            } else if (userType === 'cliente') {
+            } else if (userType === 'socio') {
                 if (!documento.trim() || !pin.trim()) {
                     Alert.alert('Error', 'Por favor ingrese documento y PIN');
                     setLoading(false);
                     return;
                 }
-                await loginCliente(documento, pin);
+                await loginSocio(documento, pin);
             }
         } catch (error) {
             Alert.alert('Error', error.message || 'Error al iniciar sesión');
@@ -143,7 +143,7 @@ export default function LoginScreen() {
                                 <Ionicons name="card-outline" size={24} color="#64748b" style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
-                                    placeholder={userType === 'cliente' ? "Número de documento" : "Número de documento"}
+                                    placeholder="Número de documento"
                                     placeholderTextColor="#64748b"
                                     value={documento}
                                     onChangeText={setDocumento}

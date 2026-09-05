@@ -136,6 +136,31 @@ export default function AdminDashboardScreen({ navigation }) {
                     </View>
                 </View>
 
+                {/* Tickets / Reportes */}
+                {(dashboard?.tickets_pendientes > 0 || dashboard?.tickets_nuevos > 0) && (
+                    <TouchableOpacity 
+                        style={styles.ticketsAlert}
+                        onPress={() => navigation.navigate('AdminTickets')}
+                    >
+                        <View style={styles.ticketsAlertIcon}>
+                            <Ionicons name="chatbubbles" size={28} color="#ef4444" />
+                            {dashboard?.tickets_nuevos > 0 && (
+                                <View style={styles.ticketsBadge}>
+                                    <Text style={styles.ticketsBadgeText}>{dashboard.tickets_nuevos}</Text>
+                                </View>
+                            )}
+                        </View>
+                        <View style={styles.ticketsAlertInfo}>
+                            <Text style={styles.ticketsAlertTitle}>Tickets Pendientes</Text>
+                            <Text style={styles.ticketsAlertSubtitle}>
+                                {dashboard?.tickets_pendientes} por atender
+                                {dashboard?.tickets_nuevos > 0 && ` • ${dashboard.tickets_nuevos} nuevos`}
+                            </Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={24} color="#64748b" />
+                    </TouchableOpacity>
+                )}
+
                 {/* Accesos rápidos */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Gestión</Text>
@@ -303,5 +328,48 @@ const styles = StyleSheet.create({
         color: '#fff',
         marginTop: 8,
         fontSize: 12,
+    },
+    ticketsAlert: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#ef444420',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#ef4444',
+    },
+    ticketsAlertIcon: {
+        position: 'relative',
+        marginRight: 16,
+    },
+    ticketsBadge: {
+        position: 'absolute',
+        top: -5,
+        right: -5,
+        backgroundColor: '#ef4444',
+        borderRadius: 10,
+        minWidth: 20,
+        height: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    ticketsBadgeText: {
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: 'bold',
+    },
+    ticketsAlertInfo: {
+        flex: 1,
+    },
+    ticketsAlertTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#fff',
+    },
+    ticketsAlertSubtitle: {
+        fontSize: 13,
+        color: '#ef4444',
+        marginTop: 2,
     },
 });

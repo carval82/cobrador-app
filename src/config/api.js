@@ -25,9 +25,16 @@ export const endpoints = {
     adminPlanes: '/admin/planes',
     // Admin - Pagos
     adminPagos: '/admin/pagos',
+    // Admin - Tickets
+    adminTickets: '/admin/tickets',
+    adminResponderTicket: '/admin/tickets',
     // Cliente
     loginCliente: '/cliente/login',
     clienteCuenta: '/cliente/cuenta',
     clienteFacturas: '/cliente/facturas',
     clientePagos: '/cliente/pagos',
+    // Socio
+    loginSocio: '/socio/login',
+    socioProyectos: '/socio/proyectos',
+    socioLiquidacion: '/socio/liquidacion',
 };

@@ -85,6 +85,19 @@ class ApiService {
         return response;
     }
 
+    async loginSocio(documento, pin) {
+        const response = await this.request(endpoints.loginSocio, {
+            method: 'POST',
+            body: JSON.stringify({ documento, pin }),
+        });
+
+        if (response.token) {
+            await this.setToken(response.token);
+        }
+
+        return response;
+    }
+
     async logout() {
         await this.removeToken();
     }

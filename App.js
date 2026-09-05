@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -6,6 +6,12 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import db from './src/services/database';
+import { 
+    registerForPushNotificationsAsync, 
+    savePushTokenToServer,
+    addNotificationReceivedListener,
+    addNotificationResponseReceivedListener 
+} from './src/services/notifications';
 
 // Pantallas comunes
 import LoginScreen from './src/screens/LoginScreen';
@@ -36,9 +42,14 @@ import AdminPagosScreen from './src/screens/AdminPagosScreen';
 import AdminFacturasScreen from './src/screens/AdminFacturasScreen';
 import AdminLiquidacionScreen from './src/screens/AdminLiquidacionScreen';
 import AdminParticipacionesScreen from './src/screens/AdminParticipacionesScreen';
+import AdminTicketsScreen from './src/screens/AdminTicketsScreen';
 
 // Pantallas Cliente
 import ClienteHomeScreen from './src/screens/ClienteHomeScreen';
+
+// Pantallas Socio
+import SocioProyectosScreen from './src/screens/SocioProyectosScreen';
+import SocioLiquidacionScreen from './src/screens/SocioLiquidacionScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,8 +60,40 @@ const screenOptions = {
   contentStyle: { backgroundColor: '#0f172a' },
 };
 
-function AppNavigator() {
+function AppNavigator({ navigationRef }) {
   const { user, userType, loading } = useAuth();
+  const notificationListener = useRef();
+  const responseListener = useRef();
+
+  useEffect(() => {
+    if (user && userType === 'admin') {
+      registerForPushNotificationsAsync().then(token => {
+        if (token) {
+          savePushTokenToServer(token, 'admin');
+        }
+      });
+
+      notificationListener.current = addNotificationReceivedListener(notification => {
+        console.log('Notificación recibida:', notification);
+      });
+
+      responseListener.current = addNotificationResponseReceivedListener(response => {
+        const data = response.notification.request.content.data;
+        if (data?.screen === 'AdminTickets' && navigationRef?.current) {
+          navigationRef.current.navigate('AdminTickets');
+        }
+      });
+
+      return () => {
+        if (notificationListener.current) {
+          notificationListener.current.remove();
+        }
+        if (responseListener.current) {
+          responseListener.current.remove();
+        }
+      };
+    }
+  }, [user, userType]);
 
   if (loading) {
     return (
@@ -150,6 +193,11 @@ function AppNavigator() {
             component={AdminParticipacionesScreen} 
             options={{ headerShown: false }}
           />
+          <Stack.Screen 
+            name="AdminTickets" 
+            component={AdminTicketsScreen} 
+            options={{ headerShown: false }}
+          />
         </>
       ) : userType === 'cliente' ? (
         <Stack.Screen 
@@ -157,6 +205,19 @@ function AppNavigator() {
           component={ClienteHomeScreen} 
           options={{ headerShown: false }}
         />
+      ) : userType === 'socio' ? (
+        <>
+          <Stack.Screen 
+            name="SocioProyectos" 
+            component={SocioProyectosScreen} 
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="SocioLiquidacion" 
+            component={SocioLiquidacionScreen} 
+            options={{ headerShown: false }}
+          />
+        </>
       ) : (
         <>
           <Stack.Screen 
@@ -202,6 +263,7 @@ function AppNavigator() {
 
 export default function App() {
   const [dbReady, setDbReady] = useState(false);
+  const navigationRef = useRef();
 
   useEffect(() => {
     initDatabase();
@@ -227,9 +289,9 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <StatusBar style="light" />
-        <AppNavigator />
+        <AppNavigator navigationRef={navigationRef} />
       </NavigationContainer>
     </AuthProvider>
   );

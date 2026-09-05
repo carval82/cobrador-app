@@ -7,7 +7,7 @@ const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [userType, setUserType] = useState(null); // 'cobrador', 'admin', 'cliente'
+    const [userType, setUserType] = useState(null); // 'cobrador', 'admin', 'cliente', 'socio'
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -73,6 +73,20 @@ export const AuthProvider = ({ children }) => {
         return response;
     };
 
+    const loginSocio = async (documento, pin) => {
+        const response = await api.loginSocio(documento, pin);
+        
+        if (response.socio) {
+            const userData = { ...response.socio, type: 'socio' };
+            await SecureStore.setItemAsync('user', JSON.stringify(userData));
+            await SecureStore.setItemAsync('userType', 'socio');
+            setUser(userData);
+            setUserType('socio');
+        }
+        
+        return response;
+    };
+
     const logout = async () => {
         await api.logout();
         await SecureStore.deleteItemAsync('user');
@@ -82,7 +96,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, userType, loading, login, loginAdmin, loginCliente, logout }}>
+        <AuthContext.Provider value={{ user, userType, loading, login, loginAdmin, loginCliente, loginSocio, logout }}>
             {children}
         </AuthContext.Provider>
     );

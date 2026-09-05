@@ -26,6 +26,7 @@ export default function NewClientScreen({ navigation }) {
         celular: '',
         email: '',
         plan_id: '',
+        tipo_alta: 'nuevo',
     });
     const [planes, setPlanes] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -76,8 +77,8 @@ export default function NewClientScreen({ navigation }) {
             const netInfo = await NetInfo.fetch();
             
             if (netInfo.isConnected) {
-                await api.registerClient(clientData);
-                Alert.alert('Éxito', 'Cliente registrado correctamente', [
+                const result = await api.registerClient(clientData);
+                Alert.alert('Éxito', result.message || 'Cliente registrado correctamente', [
                     { text: 'OK', onPress: () => navigation.goBack() }
                 ]);
             } else {
@@ -187,6 +188,26 @@ export default function NewClientScreen({ navigation }) {
                 </View>
 
                 <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Tipo de alta *</Text>
+                    <View style={styles.tipoRow}>
+                        <TouchableOpacity
+                            style={[styles.tipoCard, formData.tipo_alta === 'nuevo' && styles.tipoCardActive]}
+                            onPress={() => handleChange('tipo_alta', 'nuevo')}
+                        >
+                            <Text style={styles.tipoTitle}>Cliente nuevo</Text>
+                            <Text style={styles.tipoHint}>Mes libre. Si entra el 1-15, paga el mes siguiente. Si entra después del 15, se corre un mes más.</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.tipoCard, formData.tipo_alta === 'antiguo' && styles.tipoCardAntiguo]}
+                            onPress={() => handleChange('tipo_alta', 'antiguo')}
+                        >
+                            <Text style={styles.tipoTitle}>Cliente antiguo</Text>
+                            <Text style={styles.tipoHint}>Ya venía del servicio. Se genera ya la factura del mes en curso.</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                <View style={styles.inputGroup}>
                     <Text style={styles.label}>Plan de Servicio</Text>
                     <View style={styles.pickerContainer}>
                         <Picker
@@ -265,6 +286,33 @@ const styles = StyleSheet.create({
     },
     row: {
         flexDirection: 'row',
+    },
+    tipoRow: {
+        gap: 10,
+    },
+    tipoCard: {
+        backgroundColor: '#0f172a',
+        borderRadius: 10,
+        padding: 12,
+        borderWidth: 2,
+        borderColor: '#334155',
+        marginBottom: 8,
+    },
+    tipoCardActive: {
+        borderColor: '#10b981',
+    },
+    tipoCardAntiguo: {
+        borderColor: '#3b82f6',
+    },
+    tipoTitle: {
+        color: '#fff',
+        fontWeight: '700',
+        marginBottom: 4,
+    },
+    tipoHint: {
+        color: '#94a3b8',
+        fontSize: 12,
+        lineHeight: 16,
     },
     pickerContainer: {
         backgroundColor: '#0f172a',
