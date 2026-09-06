@@ -74,6 +74,13 @@ class _AdminClientesScreenState extends State<AdminClientesScreen> {
                       itemBuilder: (context, i) {
                         final c = Map<String, dynamic>.from(items[i] as Map);
                         return SoftCard(
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => AdminClienteFormScreen(cliente: c)),
+                            );
+                            _load();
+                          },
                           child: Row(
                             children: [
                               CircleAvatar(
@@ -87,6 +94,12 @@ class _AdminClientesScreenState extends State<AdminClientesScreen> {
                                   children: [
                                     Text('${c['nombre']}', style: const TextStyle(fontWeight: FontWeight.w800)),
                                     Text('${c['codigo'] ?? ''} · ${c['documento'] ?? ''}', style: const TextStyle(color: AppColors.muted, fontSize: 12)),
+                                    Text(
+                                      c['tipo_alta'] == 'nuevo'
+                                          ? 'Nuevo · primera factura ${c['primera_factura'] ?? ''}'
+                                          : 'Antiguo',
+                                      style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -108,7 +121,8 @@ class _AdminClientesScreenState extends State<AdminClientesScreen> {
 }
 
 class AdminClienteFormScreen extends StatefulWidget {
-  const AdminClienteFormScreen({super.key});
+  const AdminClienteFormScreen({super.key, this.cliente});
+  final Map<String, dynamic>? cliente;
 
   @override
   State<AdminClienteFormScreen> createState() => _AdminClienteFormScreenState();
@@ -125,10 +139,20 @@ class _AdminClienteFormScreenState extends State<AdminClienteFormScreen> {
   List proyectos = [];
   List planes = [];
   bool busy = false;
+  bool get isEdit => widget.cliente != null;
 
   @override
   void initState() {
     super.initState();
+    final c = widget.cliente;
+    if (c != null) {
+      nombre.text = '${c['nombre'] ?? ''}';
+      documento.text = '${c['documento'] ?? ''}';
+      celular.text = '${c['celular'] ?? ''}';
+      direccion.text = '${c['direccion'] ?? ''}';
+      tipoAlta = (c['tipo_alta'] ?? 'nuevo').toString();
+      proyectoId = c['proyecto_id'] == null ? null : (c['proyecto_id'] as num).toInt();
+    }
     _loadForms();
   }
 
@@ -158,17 +182,21 @@ class _AdminClienteFormScreenState extends State<AdminClienteFormScreen> {
     }
     setState(() => busy = true);
     try {
-      final res = await context.read<ApiClient>().post('/admin/clientes', data: {
+      final api = context.read<ApiClient>();
+      final data = {
         'nombre': nombre.text.trim(),
         'documento': documento.text.trim(),
         'celular': celular.text.trim(),
         'direccion': direccion.text.trim(),
         'proyecto_id': proyectoId,
         'tipo_alta': tipoAlta,
-        'plan_servicio_id': planId,
-      });
+        if (!isEdit) 'plan_servicio_id': planId,
+      };
+      final res = isEdit
+          ? await api.put('/admin/clientes/${widget.cliente!['id']}', data: data)
+          : await api.post('/admin/clientes', data: data);
       if (!mounted) return;
-      await showAppMessage(context, res['message']?.toString() ?? 'Cliente creado.');
+      await showAppMessage(context, res['message']?.toString() ?? (isEdit ? 'Cliente actualizado.' : 'Cliente creado.'));
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) await showAppMessage(context, e.toString(), error: true);
@@ -180,7 +208,7 @@ class _AdminClienteFormScreenState extends State<AdminClienteFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nuevo cliente')),
+      appBar: AppBar(title: Text(isEdit ? 'Corregir cliente' : 'Nuevo cliente')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -198,8 +226,8 @@ class _AdminClienteFormScreenState extends State<AdminClienteFormScreen> {
                 const SizedBox(height: 10),
                 Text(
                   tipoAlta == 'nuevo'
-                      ? 'Mes libre. Primera factura: ${firstInvoiceHint(DateTime.now())}.'
-                      : 'Se genera la factura del mes en curso si asignas un plan.',
+                      ? 'Mes libre. Primera factura: ${firstInvoiceHint(DateTime.now())}. Si te equivocaste, cámbialo y se quita la factura de este mes (si no tiene pagos).'
+                      : 'Cliente antiguo: se genera la factura del mes en curso si tiene plan.',
                   style: const TextStyle(color: AppColors.muted),
                 ),
               ],
@@ -225,21 +253,26 @@ class _AdminClienteFormScreenState extends State<AdminClienteFormScreen> {
                       .toList(),
                   onChanged: (v) => setState(() => proyectoId = v),
                 ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<int?>(
-                  value: planId,
-                  decoration: const InputDecoration(labelText: 'Plan (opcional)'),
-                  items: [
-                    const DropdownMenuItem(value: null, child: Text('Asignar después')),
-                    ...planes.map((p) => DropdownMenuItem(value: (p['id'] as num).toInt(), child: Text('${p['nombre']}'))),
-                  ],
-                  onChanged: (v) => setState(() => planId = v),
-                ),
+                if (!isEdit) ...[
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<int?>(
+                    value: planId,
+                    decoration: const InputDecoration(labelText: 'Plan (opcional)'),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('Asignar después')),
+                      ...planes.map((p) => DropdownMenuItem(value: (p['id'] as num).toInt(), child: Text('${p['nombre']}'))),
+                    ],
+                    onChanged: (v) => setState(() => planId = v),
+                  ),
+                ],
               ],
             ),
           ),
           const SizedBox(height: 16),
-          FilledButton(onPressed: busy ? null : _save, child: Text(busy ? 'Guardando…' : 'Crear cliente')),
+          FilledButton(
+            onPressed: busy ? null : _save,
+            child: Text(busy ? 'Guardando…' : (isEdit ? 'Guardar corrección' : 'Crear cliente')),
+          ),
         ],
       ),
     );
