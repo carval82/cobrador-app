@@ -28,6 +28,10 @@ export default function AdminClienteFormScreen({ navigation, route }) {
         proyecto_id: cliente?.proyecto_id || '',
         nombre: cliente?.nombre || '',
         documento: cliente?.documento || '',
+        tipo_documento: cliente?.tipo_documento || 'CC',
+        dv: cliente?.dv || '',
+        email: cliente?.email || '',
+        factura_electronica: cliente?.factura_electronica ? true : false,
         celular: cliente?.celular || '',
         direccion: cliente?.direccion || '',
         barrio: cliente?.barrio || '',
@@ -57,12 +61,28 @@ export default function AdminClienteFormScreen({ navigation, route }) {
         }
     };
 
-    const handleSave = async () => {
+    const handleSave = () => {
         if (!form.proyecto_id || !form.nombre || !form.documento) {
             Alert.alert('Error', 'Proyecto, nombre y documento son requeridos');
             return;
         }
 
+        if (isEdit && form.estado === 'retirado' && cliente?.estado !== 'retirado') {
+            Alert.alert(
+                'Retirar cliente',
+                'Se anularán las facturas pendientes y se cancelará el servicio. No quedará con cuentas por cobrar.',
+                [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Retirar', style: 'destructive', onPress: guardarCliente },
+                ]
+            );
+            return;
+        }
+
+        guardarCliente();
+    };
+
+    const guardarCliente = async () => {
         setSaving(true);
         try {
             const url = isEdit 
@@ -207,14 +227,58 @@ export default function AdminClienteFormScreen({ navigation, route }) {
                 </View>
 
                 <View style={styles.formGroup}>
-                    <Text style={styles.label}>Documento *</Text>
+                    <Text style={styles.label}>Tipo documento</Text>
+                    <View style={styles.pickerContainer}>
+                        <Picker
+                            selectedValue={form.tipo_documento}
+                            onValueChange={(value) => setForm({...form, tipo_documento: value})}
+                            style={styles.picker}
+                            dropdownIconColor="#fff"
+                        >
+                            <Picker.Item label="Cédula" value="CC" />
+                            <Picker.Item label="NIT / RUT" value="NIT" />
+                            <Picker.Item label="Cédula extranjería" value="CE" />
+                            <Picker.Item label="Tarjeta identidad" value="TI" />
+                        </Picker>
+                    </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                    <Text style={styles.label}>Cédula / NIT / RUT *</Text>
                     <TextInput
                         style={styles.input}
                         value={form.documento}
                         onChangeText={(text) => setForm({...form, documento: text})}
-                        placeholder="Número de documento"
+                        placeholder="Ej: 900123456-1 o la cédula"
                         placeholderTextColor="#64748b"
-                        keyboardType="numeric"
+                    />
+                </View>
+
+                {form.tipo_documento === 'NIT' && (
+                    <View style={styles.formGroup}>
+                        <Text style={styles.label}>DV (dígito de verificación)</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={form.dv}
+                            onChangeText={(text) => setForm({...form, dv: text})}
+                            placeholder="Un dígito"
+                            placeholderTextColor="#64748b"
+                            maxLength={1}
+                            keyboardType="numeric"
+                        />
+                    </View>
+                )}
+
+                <View style={styles.formGroup}>
+                    <Text style={styles.label}>Correo (para factura electrónica)</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={form.email}
+                        onChangeText={(text) => setForm({...form, email: text})}
+                        placeholder="correo@cliente.com"
+                        placeholderTextColor="#64748b"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
                     />
                 </View>
 
@@ -284,8 +348,28 @@ export default function AdminClienteFormScreen({ navigation, route }) {
                                 <Picker.Item label="Retirado" value="retirado" />
                             </Picker>
                         </View>
+                        {form.estado === 'retirado' && (
+                            <Text style={{ color: '#fbbf24', marginTop: 8, fontSize: 13 }}>
+                                Al retirar se anulan las facturas pendientes y se cancela el servicio. No queda con cuentas por cobrar.
+                            </Text>
+                        )}
                     </View>
                 )}
+
+                <View style={styles.formGroup}>
+                    <TouchableOpacity
+                        onPress={() => setForm({ ...form, factura_electronica: !form.factura_electronica })}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+                    >
+                        <Ionicons name={form.factura_electronica ? 'checkbox' : 'square-outline'} size={22} color="#38bdf8" />
+                        <Text style={{ color: '#e2e8f0' }}>Factura electrónica (Alegra / DIAN)</Text>
+                    </TouchableOpacity>
+                    {form.factura_electronica && (
+                        <Text style={{ color: '#fbbf24', marginTop: 8, fontSize: 13 }}>
+                            Necesita cédula o NIT/RUT y correo. Si es NIT, incluye el DV.
+                        </Text>
+                    )}
+                </View>
 
                 <TouchableOpacity 
                     style={[styles.saveButton, saving && styles.buttonDisabled]}
