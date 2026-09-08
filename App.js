@@ -43,6 +43,9 @@ import AdminFacturasScreen from './src/screens/AdminFacturasScreen';
 import AdminLiquidacionScreen from './src/screens/AdminLiquidacionScreen';
 import AdminParticipacionesScreen from './src/screens/AdminParticipacionesScreen';
 import AdminTicketsScreen from './src/screens/AdminTicketsScreen';
+import AdminPerfilScreen from './src/screens/AdminPerfilScreen';
+import AdminUsuariosScreen from './src/screens/AdminUsuariosScreen';
+import AdminUsuarioFormScreen from './src/screens/AdminUsuarioFormScreen';
 
 // Pantallas Cliente
 import ClienteHomeScreen from './src/screens/ClienteHomeScreen';
@@ -196,6 +199,21 @@ function AppNavigator({ navigationRef }) {
           <Stack.Screen 
             name="AdminTickets" 
             component={AdminTicketsScreen} 
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="AdminPerfil" 
+            component={AdminPerfilScreen} 
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="AdminUsuarios" 
+            component={AdminUsuariosScreen} 
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="AdminUsuarioForm" 
+            component={AdminUsuarioFormScreen} 
             options={{ headerShown: false }}
           />
         </>

@@ -61,10 +61,17 @@ export default function AdminDashboardScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <View>
-                    <Text style={styles.greeting}>Hola, {user?.name}</Text>
-                    <Text style={styles.subtitle}>Panel de Administración</Text>
-                </View>
+                <TouchableOpacity onPress={() => navigation.navigate('AdminPerfil')} style={styles.headerUser}>
+                    <View style={styles.headerAvatar}>
+                        <Text style={styles.headerAvatarText}>
+                            {(user?.name || 'A').charAt(0).toUpperCase()}
+                        </Text>
+                    </View>
+                    <View>
+                        <Text style={styles.greeting}>Hola, {user?.name}</Text>
+                        <Text style={styles.subtitle}>Ver perfil y usuarios</Text>
+                    </View>
+                </TouchableOpacity>
                 <TouchableOpacity onPress={logout} style={styles.logoutButton}>
                     <Ionicons name="log-out-outline" size={24} color="#ef4444" />
                 </TouchableOpacity>
@@ -192,6 +199,20 @@ export default function AdminDashboardScreen({ navigation }) {
                             <Text style={styles.quickActionText}>Facturas</Text>
                         </TouchableOpacity>
                     </View>
+                    <View style={[styles.quickActions, { marginTop: 10 }]}>
+                        <TouchableOpacity style={styles.quickAction} onPress={() => navigation.navigate('AdminUsuarios')}>
+                            <Ionicons name="shield-checkmark-outline" size={28} color="#3b82f6" />
+                            <Text style={styles.quickActionText}>Usuarios</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.quickAction} onPress={() => navigation.navigate('AdminPerfil')}>
+                            <Ionicons name="person-circle-outline" size={28} color="#8b5cf6" />
+                            <Text style={styles.quickActionText}>Mi perfil</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.quickAction} onPress={() => navigation.navigate('AdminTickets')}>
+                            <Ionicons name="chatbubbles-outline" size={28} color="#ef4444" />
+                            <Text style={styles.quickActionText}>Tickets</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </ScrollView>
         </View>
@@ -216,6 +237,26 @@ const styles = StyleSheet.create({
         padding: 20,
         paddingTop: 50,
         backgroundColor: '#1e293b',
+    },
+    headerUser: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        marginRight: 12,
+    },
+    headerAvatar: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        backgroundColor: '#3b82f6',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    headerAvatarText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
     },
     greeting: {
         fontSize: 22,

@@ -28,6 +28,9 @@ export const endpoints = {
     // Admin - Tickets
     adminTickets: '/admin/tickets',
     adminResponderTicket: '/admin/tickets',
+    // Admin - Perfil y usuarios
+    adminPerfil: '/admin/perfil',
+    adminUsuarios: '/admin/usuarios',
     // Cliente
     loginCliente: '/cliente/login',
     clienteCuenta: '/cliente/cuenta',

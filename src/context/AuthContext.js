@@ -95,8 +95,14 @@ export const AuthProvider = ({ children }) => {
         setUserType(null);
     };
 
+    const updateUser = async (userData) => {
+        const updated = { ...user, ...userData, type: userType };
+        await SecureStore.setItemAsync('user', JSON.stringify(updated));
+        setUser(updated);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, userType, loading, login, loginAdmin, loginCliente, loginSocio, logout }}>
+        <AuthContext.Provider value={{ user, userType, loading, login, loginAdmin, loginCliente, loginSocio, logout, updateUser }}>
             {children}
         </AuthContext.Provider>
     );
