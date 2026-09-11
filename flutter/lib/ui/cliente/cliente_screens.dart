@@ -28,18 +28,25 @@ class _ClienteHomeScreenState extends State<ClienteHomeScreen> {
 
   Future<void> _load() async {
     setState(() => loading = true);
+    Map<String, dynamic>? nextCuenta;
+    List nextFacturas = [];
     try {
       final api = context.read<ApiClient>();
-      final results = await Future.wait([
-        api.get('/cliente/cuenta'),
-        api.get('/cliente/facturas'),
-      ]);
+      try {
+        final res = await api.get('/cliente/cuenta');
+        nextCuenta = Map<String, dynamic>.from(res['cuenta'] as Map? ?? res['data'] as Map? ?? {});
+      } catch (e) {
+        if (mounted) await showAppMessage(context, e.toString(), error: true);
+      }
+      try {
+        final res = await api.get('/cliente/facturas');
+        nextFacturas = res['facturas'] as List? ?? res['data'] as List? ?? [];
+      } catch (_) {}
+      if (!mounted) return;
       setState(() {
-        cuenta = Map<String, dynamic>.from(results[0]['cuenta'] as Map? ?? {});
-        facturas = results[1]['facturas'] as List? ?? [];
+        cuenta = nextCuenta ?? {};
+        facturas = nextFacturas;
       });
-    } catch (e) {
-      if (mounted) await showAppMessage(context, e.toString(), error: true);
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -64,8 +71,13 @@ class _ClienteHomeScreenState extends State<ClienteHomeScreen> {
   Widget build(BuildContext context) {
     final cliente = Map<String, dynamic>.from(cuenta?['cliente'] as Map? ?? {});
     final servicio = cuenta?['servicio'] is Map ? Map<String, dynamic>.from(cuenta!['servicio'] as Map) : null;
-    final saldo = (cuenta?['saldo_pendiente'] as num?) ?? 0;
-    final name = cliente['nombre']?.toString() ?? context.watch<AuthController>().user?.name ?? 'Cliente';
+    final saldo = asAmount(cuenta?['saldo_pendiente']);
+    final authUser = context.watch<AuthController>().user;
+    final name = (cliente['nombre'] ?? authUser?.name ?? 'Cliente').toString();
+    final codigo = (cliente['codigo'] ?? '').toString();
+    final direccion = (cliente['direccion'] ?? '').toString();
+    final barrio = (cliente['barrio'] ?? '').toString();
+    final proyecto = (cliente['proyecto'] ?? cliente['proyecto_nombre'] ?? '').toString();
 
     return Scaffold(
       appBar: AppBar(
@@ -73,7 +85,7 @@ class _ClienteHomeScreenState extends State<ClienteHomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Hola, $name', style: const TextStyle(fontSize: 16)),
-            Text('Código: ${cliente['codigo'] ?? '—'}', style: const TextStyle(fontSize: 12, color: AppColors.muted, fontWeight: FontWeight.w500)),
+            Text('Código: ${codigo.isEmpty ? '—' : codigo}', style: const TextStyle(fontSize: 12, color: AppColors.muted, fontWeight: FontWeight.w500)),
           ],
         ),
         actions: [
@@ -98,20 +110,19 @@ class _ClienteHomeScreenState extends State<ClienteHomeScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                 children: [
-                  SoftCard(
-                    child: Column(
-                      children: [
-                        if ((cliente['direccion'] ?? '').toString().isNotEmpty)
-                          _info(Icons.location_on_outlined, '${cliente['direccion']}'),
-                        if ((cliente['barrio'] ?? '').toString().isNotEmpty)
-                          _info(Icons.home_outlined, '${cliente['barrio']}'),
-                        if ((cliente['proyecto'] ?? '').toString().isNotEmpty)
-                          _info(Icons.apartment_outlined, '${cliente['proyecto']}'),
-                      ],
+                  if (direccion.isNotEmpty || barrio.isNotEmpty || proyecto.isNotEmpty) ...[
+                    SoftCard(
+                      child: Column(
+                        children: [
+                          if (direccion.isNotEmpty) _info(Icons.location_on_outlined, direccion),
+                          if (barrio.isNotEmpty) _info(Icons.home_outlined, barrio),
+                          if (proyecto.isNotEmpty) _info(Icons.apartment_outlined, proyecto),
+                        ],
+                      ),
                     ),
-                  ),
-                  if (servicio != null) ...[
                     const SizedBox(height: 16),
+                  ],
+                  if (servicio != null) ...[
                     const Text('Mi plan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 8),
                     SoftCard(
@@ -181,7 +192,7 @@ class _ClienteHomeScreenState extends State<ClienteHomeScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(money(f['total']), style: const TextStyle(fontWeight: FontWeight.w800)),
-                                  if (((f['saldo'] as num?) ?? 0) > 0)
+                                  if (asAmount(f['saldo']) > 0)
                                     Text('Saldo ${money(f['saldo'])}', style: const TextStyle(color: AppColors.rose, fontSize: 12)),
                                 ],
                               ),

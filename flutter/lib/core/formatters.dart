@@ -6,7 +6,12 @@ final _cop = NumberFormat.currency(
   decimalDigits: 0,
 );
 
-String money(num? value) => _cop.format(value ?? 0);
+String money(dynamic value) => _cop.format(asAmount(value));
+
+num asAmount(dynamic value) {
+  if (value is num) return value;
+  return num.tryParse(value?.toString().replaceAll(',', '.') ?? '') ?? 0;
+}
 
 String initials(String? name) {
   final parts = (name ?? '').trim().split(RegExp(r'\s+'));
