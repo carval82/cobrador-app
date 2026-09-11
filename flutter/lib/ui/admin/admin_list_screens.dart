@@ -18,8 +18,8 @@ class _AdminClientesScreenState extends State<AdminClientesScreen> {
   bool loading = true;
   String search = '';
 
-  Future<void> _load() async {
-    setState(() => loading = true);
+  Future<void> _load({bool silent = false}) async {
+    if (!silent) setState(() => loading = true);
     try {
       final res = await context.read<ApiClient>().get('/admin/clientes', query: {
         if (search.trim().length >= 2) 'search': search.trim(),
@@ -79,7 +79,7 @@ class _AdminClientesScreenState extends State<AdminClientesScreen> {
                               context,
                               MaterialPageRoute(builder: (_) => AdminClienteFormScreen(cliente: c)),
                             );
-                            _load();
+                            _load(silent: true);
                           },
                           child: Row(
                             children: [
@@ -205,10 +205,35 @@ class _AdminClienteFormScreenState extends State<AdminClienteFormScreen> {
     }
   }
 
+  Future<void> _delete() async {
+    if (!await confirm(context, 'Eliminar cliente', '¿Está seguro de eliminar este cliente?')) return;
+    if (!mounted) return;
+    setState(() => busy = true);
+    try {
+      final res = await context.read<ApiClient>().delete('/admin/clientes/${widget.cliente!['id']}');
+      if (!mounted) return;
+      await showAppMessage(context, res['message']?.toString() ?? 'Cliente eliminado.');
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) await showAppMessage(context, e.toString(), error: true);
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(isEdit ? 'Corregir cliente' : 'Nuevo cliente')),
+      appBar: AppBar(
+        title: Text(isEdit ? 'Corregir cliente' : 'Nuevo cliente'),
+        actions: [
+          if (isEdit)
+            IconButton(
+              onPressed: busy ? null : _delete,
+              icon: const Icon(Icons.delete_outline, color: AppColors.rose),
+            ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

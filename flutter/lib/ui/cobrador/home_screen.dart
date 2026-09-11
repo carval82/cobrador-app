@@ -5,6 +5,7 @@ import '../../core/formatters.dart';
 import '../../state/auth_controller.dart';
 import '../../state/cobrador_controller.dart';
 import '../../theme/app_theme.dart';
+import '../ayuda_screen.dart';
 import '../widgets.dart';
 import 'clients_screen.dart';
 import 'invoices_screen.dart';
@@ -123,6 +124,14 @@ class _CobradorHomeScreenState extends State<CobradorHomeScreen> {
               icon: Icons.person_add_alt_1_outlined,
               color: AppColors.violet,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewClientScreen())),
+            ),
+            const SizedBox(height: 10),
+            _ActionTile(
+              title: 'Ayuda',
+              subtitle: 'Preguntas y soporte de la ruta',
+              icon: Icons.chat_bubble_outline,
+              color: AppColors.violet,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AyudaScreen())),
             ),
             const SizedBox(height: 20),
             FilledButton.icon(

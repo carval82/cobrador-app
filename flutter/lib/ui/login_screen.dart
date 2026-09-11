@@ -47,6 +47,12 @@ class _LoginScreenState extends State<LoginScreen> {
           return;
         }
         await auth.loginSocio(documento.text.trim(), pin.text);
+      } else if (role == 'cliente') {
+        if (documento.text.trim().isEmpty || pin.text.isEmpty) {
+          await showAppMessage(context, 'Escribe documento y PIN de 4 dígitos.', error: true);
+          return;
+        }
+        await auth.loginCliente(documento.text.trim(), pin.text);
       } else {
         if (documento.text.trim().isEmpty || pin.text.isEmpty) {
           await showAppMessage(context, 'Escribe documento y PIN.', error: true);
@@ -103,12 +109,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: AppColors.sky,
                   onTap: () => setState(() => role = 'admin'),
                 ),
-                const SizedBox(width: 8),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
                 _RoleChip(
                   label: 'Socio',
                   selected: role == 'socio',
                   color: AppColors.violet,
                   onTap: () => setState(() => role = 'socio'),
+                ),
+                const SizedBox(width: 8),
+                _RoleChip(
+                  label: 'Cliente',
+                  selected: role == 'cliente',
+                  color: AppColors.amber,
+                  onTap: () => setState(() => role = 'cliente'),
                 ),
               ],
             ),
@@ -153,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: pin,
                       obscureText: obscure,
                       keyboardType: TextInputType.number,
-                      maxLength: 6,
+                      maxLength: role == 'cliente' ? 4 : 6,
                       decoration: InputDecoration(
                         labelText: 'PIN',
                         counterText: '',

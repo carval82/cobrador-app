@@ -5,8 +5,10 @@ import '../../core/api_client.dart';
 import '../../core/formatters.dart';
 import '../../state/auth_controller.dart';
 import '../../theme/app_theme.dart';
+import '../ayuda_screen.dart';
 import '../widgets.dart';
 import 'admin_list_screens.dart';
+import 'admin_perfil_usuarios.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -53,6 +55,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AyudaScreen())),
+            icon: const Icon(Icons.chat_bubble_outline, color: AppColors.violet),
+          ),
           IconButton(
             onPressed: () async {
               if (await confirm(context, 'Salir', '¿Cerrar sesión?')) {
@@ -126,6 +132,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     ('Cobradores', Icons.badge_outlined, AppColors.forest, () => const AdminCobradoresScreen()),
                     ('Planes', Icons.wifi_outlined, AppColors.sky, () => const AdminPlanesScreen()),
                     ('Tickets', Icons.chat_bubble_outline, AppColors.rose, () => const AdminTicketsScreen()),
+                    ('Usuarios', Icons.manage_accounts_outlined, AppColors.sky, () => const AdminUsuariosScreen()),
+                    ('Mi perfil', Icons.person_outline, AppColors.forest, () => const AdminPerfilScreen()),
                     ('Nuevo cliente', Icons.person_add_alt, AppColors.violet, () => const AdminClienteFormScreen()),
                   ].map((item) => Padding(
                         padding: const EdgeInsets.only(bottom: 8),

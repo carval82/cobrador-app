@@ -5,6 +5,7 @@ import '../../core/api_client.dart';
 import '../../core/formatters.dart';
 import '../../state/auth_controller.dart';
 import '../../theme/app_theme.dart';
+import '../ayuda_screen.dart';
 import '../widgets.dart';
 
 class SocioHomeScreen extends StatefulWidget {
@@ -49,6 +50,10 @@ class _SocioHomeScreenState extends State<SocioHomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AyudaScreen())),
+            icon: const Icon(Icons.chat_bubble_outline, color: AppColors.violet),
+          ),
           IconButton(
             onPressed: () async {
               if (await confirm(context, 'Salir', '¿Cerrar sesión?')) {
@@ -131,6 +136,8 @@ class _SocioLiquidacionScreenState extends State<SocioLiquidacionScreen> {
     final resumen = Map<String, dynamic>.from(data?['resumen'] as Map? ?? {});
     final socio = Map<String, dynamic>.from(data?['socio'] as Map? ?? {});
     final historial = data?['historial'] as List? ?? [];
+    final gastos = data?['gastos_detalle'] as List? ?? [];
+    final pct = socio['porcentaje'] ?? widget.proyecto['porcentaje'] ?? '—';
 
     return Scaffold(
       appBar: AppBar(title: Text('${widget.proyecto['nombre']}')),
@@ -145,16 +152,49 @@ class _SocioLiquidacionScreenState extends State<SocioLiquidacionScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Participación ${socio['porcentaje'] ?? widget.proyecto['porcentaje'] ?? '—'}%', style: const TextStyle(color: AppColors.muted)),
+                        Text('Participación $pct%', style: const TextStyle(color: AppColors.muted)),
                         const SizedBox(height: 10),
                         _kv('Ingresos', money(resumen['ingresos']), AppColors.forest),
                         _kv('Gastos', money(resumen['gastos']), AppColors.rose),
                         _kv('Utilidad', money(resumen['utilidad']), AppColors.sky),
                         const Divider(),
-                        _kv('Tu parte', money(resumen['mi_participacion']), AppColors.forest),
+                        _kv('Lo que ganas este mes ($pct%)', money(resumen['mi_participacion']), AppColors.forest),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  const Text('Gastos del proyecto', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 8),
+                  if (gastos.isEmpty)
+                    const SoftCard(child: Text('No hay gastos registrados este mes', style: TextStyle(color: AppColors.muted)))
+                  else
+                    ...gastos.map((raw) {
+                      final g = Map<String, dynamic>.from(raw as Map);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: SoftCard(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('${g['descripcion'] ?? g['categoria_nombre'] ?? 'Gasto'}', style: const TextStyle(fontWeight: FontWeight.w800)),
+                                    Text(
+                                      '${g['fecha'] ?? ''} · ${g['categoria_nombre'] ?? ''}${g['proveedor'] != null && '${g['proveedor']}'.isNotEmpty ? ' · ${g['proveedor']}' : ''}',
+                                      style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(money(g['monto']), style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.rose)),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  const SizedBox(height: 8),
+                  SoftCard(child: _kv('Tu parte de los gastos', money(resumen['mi_gasto']), AppColors.rose)),
                   const SizedBox(height: 16),
                   const Text('Historial', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 8),

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api_client.dart';
+import '../../core/formatters.dart';
 import '../../data/models.dart';
 import '../../state/auth_controller.dart';
 import '../../state/cobrador_controller.dart';
 import '../../theme/app_theme.dart';
+import '../ayuda_screen.dart';
 import '../widgets.dart';
 import 'home_screen.dart';
 
@@ -65,6 +67,10 @@ class _ProyectosScreenState extends State<ProyectosScreen> {
         ),
         actions: [
           IconButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AyudaScreen())),
+            icon: const Icon(Icons.chat_bubble_outline, color: AppColors.violet),
+          ),
+          IconButton(
             onPressed: () async {
               if (await confirm(context, 'Salir', '¿Cerrar sesión?')) {
                 if (context.mounted) context.read<AuthController>().logout();
@@ -118,8 +124,10 @@ class _ProyectosScreenState extends State<ProyectosScreen> {
                                     const SizedBox(height: 8),
                                     Wrap(
                                       spacing: 8,
+                                      runSpacing: 6,
                                       children: [
-                                        StatusPill(label: '${p.clientesAsignados} clientes', color: AppColors.forest),
+                                        StatusPill(label: '${p.clientesAsignados} asignados', color: AppColors.forest),
+                                        StatusPill(label: 'Cobró ${money(p.totalCobrado)}', color: AppColors.sky),
                                         StatusPill(label: '${p.facturasPendientes} pendientes', color: AppColors.amber, soft: AppColors.amberSoft),
                                       ],
                                     ),

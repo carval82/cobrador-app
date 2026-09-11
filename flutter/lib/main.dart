@@ -8,6 +8,7 @@ import 'state/auth_controller.dart';
 import 'state/cobrador_controller.dart';
 import 'theme/app_theme.dart';
 import 'ui/admin/admin_home.dart';
+import 'ui/cliente/cliente_screens.dart';
 import 'ui/cobrador/proyectos_screen.dart';
 import 'ui/login_screen.dart';
 import 'ui/socio/socio_screens.dart';
@@ -66,6 +67,8 @@ class AuthGate extends StatelessWidget {
         return const SocioHomeScreen();
       case 'cobrador':
         return const ProyectosScreen();
+      case 'cliente':
+        return const ClienteHomeScreen();
       default:
         return const LoginScreen();
     }

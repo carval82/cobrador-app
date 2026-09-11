@@ -57,6 +57,23 @@ class AuthController extends ChangeNotifier {
     await _persist(res['token']?.toString(), AppUser.fromJson(socio, 'socio'));
   }
 
+  Future<void> loginCliente(String documento, String pin) async {
+    final res = await _api.post('/cliente/login', data: {
+      'documento': documento,
+      'pin': pin,
+    });
+    final cliente = Map<String, dynamic>.from(res['cliente'] as Map);
+    await _persist(res['token']?.toString(), AppUser.fromJson(cliente, 'cliente'));
+  }
+
+  Future<void> updateUser(Map<String, dynamic> next) async {
+    if (user == null) return;
+    await _persist(null, AppUser.fromJson({
+      ...user!.toJson(),
+      ...next,
+    }, user!.type));
+  }
+
   Future<void> logout() async {
     user = null;
     await _storage.deleteAll();

@@ -40,6 +40,8 @@ class Proyecto {
   final String? ubicacion;
   final int clientesAsignados;
   final int facturasPendientes;
+  final double totalCobrado;
+  final double saldoPendiente;
   final bool activo;
 
   const Proyecto({
@@ -49,6 +51,8 @@ class Proyecto {
     this.ubicacion,
     this.clientesAsignados = 0,
     this.facturasPendientes = 0,
+    this.totalCobrado = 0,
+    this.saldoPendiente = 0,
     this.activo = true,
   });
 
@@ -60,6 +64,8 @@ class Proyecto {
       ubicacion: json['ubicacion']?.toString(),
       clientesAsignados: _asInt(json['clientes_asignados'] ?? json['clientes_count']),
       facturasPendientes: _asInt(json['facturas_pendientes']),
+      totalCobrado: _asDouble(json['total_cobrado']),
+      saldoPendiente: _asDouble(json['saldo_pendiente']),
       activo: json['activo'] != false,
     );
   }
