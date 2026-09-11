@@ -51,7 +51,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(user?.name ?? 'Admin', style: const TextStyle(fontSize: 14, color: AppColors.muted, fontWeight: FontWeight.w500)),
-            const Text('Administración'),
+            Text(user?.role == 'oficina' ? 'Oficina' : 'Administración'),
           ],
         ),
         actions: [
@@ -132,7 +132,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     ('Cobradores', Icons.badge_outlined, AppColors.forest, () => const AdminCobradoresScreen()),
                     ('Planes', Icons.wifi_outlined, AppColors.sky, () => const AdminPlanesScreen()),
                     ('Tickets', Icons.chat_bubble_outline, AppColors.rose, () => const AdminTicketsScreen()),
-                    ('Usuarios', Icons.manage_accounts_outlined, AppColors.sky, () => const AdminUsuariosScreen()),
+                    if (user?.isAdmin ?? false)
+                      ('Usuarios', Icons.manage_accounts_outlined, AppColors.sky, () => const AdminUsuariosScreen()),
                     ('Mi perfil', Icons.person_outline, AppColors.forest, () => const AdminPerfilScreen()),
                     ('Nuevo cliente', Icons.person_add_alt, AppColors.violet, () => const AdminClienteFormScreen()),
                   ].map((item) => Padding(

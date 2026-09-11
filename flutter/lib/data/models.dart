@@ -4,6 +4,8 @@ class AppUser {
   final String? documento;
   final String? email;
   final String type;
+  final String? role;
+  final String? roleLabel;
 
   const AppUser({
     required this.id,
@@ -11,7 +13,11 @@ class AppUser {
     required this.type,
     this.documento,
     this.email,
+    this.role,
+    this.roleLabel,
   });
+
+  bool get isAdmin => (role ?? type) == 'admin';
 
   factory AppUser.fromJson(Map<String, dynamic> json, String type) {
     return AppUser(
@@ -20,6 +26,8 @@ class AppUser {
       documento: json['documento']?.toString(),
       email: json['email']?.toString(),
       type: type,
+      role: json['role']?.toString(),
+      roleLabel: json['role_label']?.toString(),
     );
   }
 
@@ -30,6 +38,8 @@ class AppUser {
         'documento': documento,
         'email': email,
         'type': type,
+        'role': role,
+        'role_label': roleLabel,
       };
 }
 

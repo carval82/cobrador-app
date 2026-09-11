@@ -129,6 +129,11 @@ class _AdminPerfilScreenState extends State<AdminPerfilScreen> {
                       const SizedBox(height: 8),
                       Text(name.text, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
                       Text(email.text, style: const TextStyle(color: AppColors.muted)),
+                      if (context.watch<AuthController>().user?.roleLabel != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: StatusPill(label: context.watch<AuthController>().user!.roleLabel!, color: AppColors.sky),
+                        ),
                     ],
                   ),
                 ),
@@ -249,6 +254,8 @@ class _AdminUsuariosScreenState extends State<AdminUsuariosScreen> {
                             children: [
                               Text('${u['name'] ?? u['nombre'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w800)),
                               Text('${u['email'] ?? ''}', style: const TextStyle(color: AppColors.muted, fontSize: 12)),
+                              if ((u['role_label'] ?? u['role']) != null)
+                                Text('${u['role_label'] ?? u['role']}', style: const TextStyle(color: AppColors.sky, fontSize: 12, fontWeight: FontWeight.w700)),
                             ],
                           ),
                         ),
@@ -273,14 +280,32 @@ class AdminUsuarioFormScreen extends StatefulWidget {
 }
 
 class _AdminUsuarioFormScreenState extends State<AdminUsuarioFormScreen> {
+  static const rolesApp = [
+    {'id': 'admin', 'nombre': 'Administrador'},
+    {'id': 'oficina', 'nombre': 'Oficina'},
+    {'id': 'cobrador', 'nombre': 'Cobrador'},
+    {'id': 'socio', 'nombre': 'Socio'},
+  ];
+
   final name = TextEditingController();
   final email = TextEditingController();
   final password = TextEditingController();
   final passwordConfirm = TextEditingController();
+  final documento = TextEditingController();
+  final pin = TextEditingController();
+  final celular = TextEditingController();
+  final telefono = TextEditingController();
+  final comision = TextEditingController(text: '5');
+  final porcentaje = TextEditingController(text: '0');
+  String role = 'oficina';
+  int? proyectoId;
+  List proyectos = [];
+  final selectedProyectos = <int>{};
   bool busy = false;
   bool obscure = true;
   bool get isEdit => widget.usuario != null;
   bool get isSelf => isEdit && widget.usuario!['id'] == context.read<AuthController>().user?.id;
+  bool get isPanel => role == 'admin' || role == 'oficina';
 
   @override
   void initState() {
@@ -289,7 +314,27 @@ class _AdminUsuarioFormScreenState extends State<AdminUsuarioFormScreen> {
     if (u != null) {
       name.text = '${u['name'] ?? u['nombre'] ?? ''}';
       email.text = '${u['email'] ?? ''}';
+      role = (u['role'] ?? 'oficina').toString();
+      documento.text = '${u['documento'] ?? ''}';
+      celular.text = '${u['celular'] ?? ''}';
+      telefono.text = '${u['telefono'] ?? ''}';
+      if (u['comision_porcentaje'] != null) comision.text = '${u['comision_porcentaje']}';
+      if (u['porcentaje'] != null) porcentaje.text = '${u['porcentaje']}';
+      proyectoId = u['proyecto_id'] == null ? null : (u['proyecto_id'] as num).toInt();
+      final assigned = u['proyectos'];
+      if (assigned is List) {
+        selectedProyectos.addAll(assigned.map((e) => e is num ? e.toInt() : int.tryParse('$e') ?? 0).where((e) => e > 0));
+      }
     }
+    _loadForms();
+  }
+
+  Future<void> _loadForms() async {
+    try {
+      final res = await context.read<ApiClient>().get('/admin/datos-formularios');
+      if (!mounted) return;
+      setState(() => proyectos = res['proyectos'] as List? ?? []);
+    } catch (_) {}
   }
 
   @override
@@ -298,6 +343,12 @@ class _AdminUsuarioFormScreenState extends State<AdminUsuarioFormScreen> {
     email.dispose();
     password.dispose();
     passwordConfirm.dispose();
+    documento.dispose();
+    pin.dispose();
+    celular.dispose();
+    telefono.dispose();
+    comision.dispose();
+    porcentaje.dispose();
     super.dispose();
   }
 
@@ -306,8 +357,8 @@ class _AdminUsuarioFormScreenState extends State<AdminUsuarioFormScreen> {
       await showAppMessage(context, 'Nombre y correo son requeridos.', error: true);
       return;
     }
-    if (!isEdit && password.text.isEmpty) {
-      await showAppMessage(context, 'La contraseña es requerida para nuevos usuarios.', error: true);
+    if (!isEdit && isPanel && password.text.isEmpty) {
+      await showAppMessage(context, 'La contraseña es requerida para admin y oficina.', error: true);
       return;
     }
     if (password.text.isNotEmpty) {
@@ -320,13 +371,38 @@ class _AdminUsuarioFormScreenState extends State<AdminUsuarioFormScreen> {
         return;
       }
     }
+    if (role == 'cobrador' && documento.text.trim().isEmpty) {
+      await showAppMessage(context, 'El documento es obligatorio para el cobrador.', error: true);
+      return;
+    }
+    if (role == 'cobrador' && !isEdit && pin.text.trim().isEmpty) {
+      await showAppMessage(context, 'El PIN es obligatorio para el cobrador.', error: true);
+      return;
+    }
+    if (role == 'socio' && (documento.text.trim().isEmpty || (!isEdit && proyectoId == null))) {
+      await showAppMessage(context, 'Documento y proyecto son obligatorios para el socio.', error: true);
+      return;
+    }
     setState(() => busy = true);
     try {
       final api = context.read<ApiClient>();
       final data = {
         'name': name.text.trim(),
         'email': email.text.trim(),
+        'role': role,
         if (password.text.isNotEmpty) 'password': password.text,
+        if (!isPanel) 'documento': documento.text.trim(),
+        if (role == 'cobrador') ...{
+          if (pin.text.trim().isNotEmpty) 'pin': pin.text.trim(),
+          'celular': celular.text.trim(),
+          'comision_porcentaje': double.tryParse(comision.text) ?? 5,
+          'proyectos': selectedProyectos.toList(),
+        },
+        if (role == 'socio') ...{
+          'telefono': telefono.text.trim(),
+          'proyecto_id': proyectoId,
+          'porcentaje': double.tryParse(porcentaje.text) ?? 0,
+        },
       };
       final res = isEdit
           ? await api.put('/admin/usuarios/${widget.usuario!['id']}', data: data)
@@ -388,19 +464,88 @@ class _AdminUsuarioFormScreenState extends State<AdminUsuarioFormScreen> {
                 const SizedBox(height: 10),
                 TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Correo')),
                 const SizedBox(height: 10),
-                TextField(
-                  controller: password,
-                  obscureText: obscure,
-                  decoration: InputDecoration(
-                    labelText: isEdit ? 'Nueva contraseña (opcional)' : 'Contraseña',
-                    suffixIcon: IconButton(
-                      onPressed: () => setState(() => obscure = !obscure),
-                      icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                DropdownButtonFormField<String>(
+                  value: role,
+                  decoration: const InputDecoration(labelText: 'Rol de la aplicación'),
+                  items: rolesApp
+                      .map((r) => DropdownMenuItem(value: r['id'], child: Text('${r['nombre']}')))
+                      .toList(),
+                  onChanged: isSelf ? null : (v) => setState(() => role = v ?? role),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  isPanel
+                      ? 'Entra a la web y a la app admin con correo y contraseña.'
+                      : (role == 'cobrador'
+                          ? 'Entra a la app como cobrador con documento y PIN.'
+                          : 'Entra a la app como socio. El PIN son los últimos 4 dígitos del documento.'),
+                  style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                ),
+                if (isPanel) ...[
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: password,
+                    obscureText: obscure,
+                    decoration: InputDecoration(
+                      labelText: isEdit ? 'Nueva contraseña (opcional)' : 'Contraseña',
+                      suffixIcon: IconButton(
+                        onPressed: () => setState(() => obscure = !obscure),
+                        icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                TextField(controller: passwordConfirm, obscureText: obscure, decoration: const InputDecoration(labelText: 'Confirmar contraseña')),
+                  const SizedBox(height: 10),
+                  TextField(controller: passwordConfirm, obscureText: obscure, decoration: const InputDecoration(labelText: 'Confirmar contraseña')),
+                ],
+                if (role == 'cobrador') ...[
+                  const SizedBox(height: 10),
+                  TextField(controller: documento, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Documento')),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: pin,
+                    obscureText: obscure,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: isEdit ? 'PIN (opcional)' : 'PIN app'),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(controller: celular, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Celular')),
+                  const SizedBox(height: 10),
+                  TextField(controller: comision, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Comisión %')),
+                  const SizedBox(height: 12),
+                  const Align(alignment: Alignment.centerLeft, child: Text('Proyectos asignados', style: TextStyle(fontWeight: FontWeight.w700))),
+                  ...proyectos.map((p) {
+                    final id = (p['id'] as num).toInt();
+                    return CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text('${p['nombre']}'),
+                      value: selectedProyectos.contains(id),
+                      onChanged: (v) => setState(() {
+                        if (v == true) {
+                          selectedProyectos.add(id);
+                        } else {
+                          selectedProyectos.remove(id);
+                        }
+                      }),
+                    );
+                  }),
+                ],
+                if (role == 'socio') ...[
+                  const SizedBox(height: 10),
+                  TextField(controller: documento, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Documento')),
+                  const SizedBox(height: 10),
+                  TextField(controller: telefono, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Teléfono')),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<int>(
+                    value: proyectos.any((p) => (p['id'] as num).toInt() == proyectoId) ? proyectoId : null,
+                    decoration: const InputDecoration(labelText: 'Proyecto'),
+                    items: proyectos
+                        .map((p) => DropdownMenuItem(value: (p['id'] as num).toInt(), child: Text('${p['nombre']}')))
+                        .toList(),
+                    onChanged: (v) => setState(() => proyectoId = v),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(controller: porcentaje, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Participación %')),
+                ],
               ],
             ),
           ),
