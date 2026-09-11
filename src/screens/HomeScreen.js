@@ -240,6 +240,16 @@ export default function HomeScreen({ navigation, route }) {
                     </View>
                     <Text style={styles.actionText}>Nuevo Cliente</Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity 
+                    style={styles.actionCard}
+                    onPress={() => navigation.navigate('AyudaBot')}
+                >
+                    <View style={[styles.actionIcon, { backgroundColor: '#8b5cf6' }]}>
+                        <Ionicons name="chatbubble-ellipses" size={28} color="#fff" />
+                    </View>
+                    <Text style={styles.actionText}>Ayuda</Text>
+                </TouchableOpacity>
             </View>
 
             {/* Sync Button */}

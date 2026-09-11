@@ -194,6 +194,15 @@ export default function ClienteHomeScreen({ navigation }) {
                     <Text style={styles.historyButtonText}>Ver Historial de Pagos</Text>
                     <Ionicons name="chevron-forward" size={24} color="#64748b" />
                 </TouchableOpacity>
+
+                <TouchableOpacity 
+                    style={styles.historyButton}
+                    onPress={() => navigation.navigate('AyudaBot')}
+                >
+                    <Ionicons name="chatbubble-ellipses-outline" size={24} color="#8b5cf6" />
+                    <Text style={styles.historyButtonText}>Ayuda y reportes</Text>
+                    <Ionicons name="chevron-forward" size={24} color="#64748b" />
+                </TouchableOpacity>
             </ScrollView>
         </View>
     );

@@ -115,9 +115,14 @@ export default function SocioProyectosScreen({ navigation }) {
                     <Text style={styles.greeting}>Bienvenido,</Text>
                     <Text style={styles.nombre}>{socio?.nombre || 'Socio'}</Text>
                 </View>
-                <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-                    <Ionicons name="log-out-outline" size={24} color="#ef4444" />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => navigation.navigate('AyudaBot')} style={styles.logoutButton}>
+                        <Ionicons name="chatbubble-ellipses-outline" size={24} color="#8b5cf6" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+                        <Ionicons name="log-out-outline" size={24} color="#ef4444" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <Text style={styles.sectionTitle}>Mis Proyectos</Text>

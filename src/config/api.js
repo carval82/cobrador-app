@@ -36,6 +36,7 @@ export const endpoints = {
     clienteCuenta: '/cliente/cuenta',
     clienteFacturas: '/cliente/facturas',
     clientePagos: '/cliente/pagos',
+    clienteTickets: '/cliente/tickets',
     // Socio
     loginSocio: '/socio/login',
     socioProyectos: '/socio/proyectos',

@@ -128,10 +128,43 @@ export default function SocioLiquidacionScreen({ route, navigation }) {
                     <View style={styles.divider} />
                     <View style={styles.utilidadRow}>
                         <Text style={styles.miParticipacionLabel}>
-                            Mi Participación ({data?.socio?.porcentaje}%)
+                            Lo que ganas este mes ({data?.socio?.porcentaje}%)
                         </Text>
                         <Text style={styles.miParticipacionValue}>
                             {formatCurrency(data?.resumen?.mi_participacion)}
+                        </Text>
+                    </View>
+                </View>
+
+                <Text style={styles.sectionTitle}>Gastos del proyecto</Text>
+                {(data?.gastos_detalle || []).length === 0 ? (
+                    <View style={styles.historialCard}>
+                        <Text style={styles.historialItemLabel}>No hay gastos registrados este mes</Text>
+                    </View>
+                ) : (
+                    (data.gastos_detalle || []).map((gasto) => (
+                        <View key={gasto.id} style={styles.historialCard}>
+                            <View style={styles.historialHeader}>
+                                <View>
+                                    <Text style={styles.historialMes}>{gasto.descripcion || gasto.categoria_nombre}</Text>
+                                    <Text style={styles.historialItemLabel}>
+                                        {gasto.fecha} · {gasto.categoria_nombre}
+                                        {gasto.proveedor ? ` · ${gasto.proveedor}` : ''}
+                                    </Text>
+                                </View>
+                                <Text style={[styles.historialParticipacion, { color: '#ef4444' }]}>
+                                    {formatCurrency(gasto.monto)}
+                                </Text>
+                            </View>
+                        </View>
+                    ))
+                )}
+
+                <View style={styles.utilidadContainer}>
+                    <View style={styles.utilidadRow}>
+                        <Text style={styles.utilidadLabel}>Tu parte de los gastos</Text>
+                        <Text style={[styles.utilidadValue, { color: '#ef4444' }]}>
+                            {formatCurrency(data?.resumen?.mi_gasto)}
                         </Text>
                     </View>
                 </View>

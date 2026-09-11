@@ -24,6 +24,7 @@ import ClientDetailScreen from './src/screens/ClientDetailScreen';
 import InvoicesScreen from './src/screens/InvoicesScreen';
 import NewPaymentScreen from './src/screens/NewPaymentScreen';
 import NewClientScreen from './src/screens/NewClientScreen';
+import AyudaBotScreen from './src/screens/AyudaBotScreen';
 
 // Pantallas Admin
 import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
@@ -216,13 +217,25 @@ function AppNavigator({ navigationRef }) {
             component={AdminUsuarioFormScreen} 
             options={{ headerShown: false }}
           />
+          <Stack.Screen 
+            name="AyudaBot" 
+            component={AyudaBotScreen} 
+            options={{ headerShown: false }}
+          />
         </>
       ) : userType === 'cliente' ? (
-        <Stack.Screen 
-          name="ClienteHome" 
-          component={ClienteHomeScreen} 
-          options={{ headerShown: false }}
-        />
+        <>
+          <Stack.Screen 
+            name="ClienteHome" 
+            component={ClienteHomeScreen} 
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="AyudaBot" 
+            component={AyudaBotScreen} 
+            options={{ headerShown: false }}
+          />
+        </>
       ) : userType === 'socio' ? (
         <>
           <Stack.Screen 
@@ -233,6 +246,11 @@ function AppNavigator({ navigationRef }) {
           <Stack.Screen 
             name="SocioLiquidacion" 
             component={SocioLiquidacionScreen} 
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="AyudaBot" 
+            component={AyudaBotScreen} 
             options={{ headerShown: false }}
           />
         </>
@@ -272,6 +290,11 @@ function AppNavigator({ navigationRef }) {
             name="NewClient" 
             component={NewClientScreen} 
             options={{ title: 'Nuevo Cliente' }}
+          />
+          <Stack.Screen 
+            name="AyudaBot" 
+            component={AyudaBotScreen} 
+            options={{ headerShown: false }}
           />
         </>
       )}

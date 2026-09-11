@@ -18,6 +18,7 @@ import { useAuth } from '../context/AuthContext';
 const USER_TYPES = [
     { id: 'cobrador', label: 'Cobrador', icon: 'wallet-outline', color: '#10b981' },
     { id: 'admin', label: 'Admin', icon: 'shield-checkmark-outline', color: '#3b82f6' },
+    { id: 'cliente', label: 'Cliente', icon: 'person-outline', color: '#f59e0b' },
     { id: 'socio', label: 'Socio', icon: 'people-outline', color: '#8b5cf6' },
 ];
 
@@ -29,7 +30,7 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const { login, loginAdmin, loginSocio } = useAuth();
+    const { login, loginAdmin, loginSocio, loginCliente } = useAuth();
 
     const handleLogin = async () => {
         setLoading(true);
@@ -55,6 +56,13 @@ export default function LoginScreen() {
                     return;
                 }
                 await loginSocio(documento, pin);
+            } else if (userType === 'cliente') {
+                if (!documento.trim() || !pin.trim()) {
+                    Alert.alert('Error', 'Por favor ingrese documento y PIN');
+                    setLoading(false);
+                    return;
+                }
+                await loginCliente(documento, pin);
             }
         } catch (error) {
             Alert.alert('Error', error.message || 'Error al iniciar sesión');
@@ -223,14 +231,15 @@ const styles = StyleSheet.create({
     },
     userTypeContainer: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
         justifyContent: 'space-between',
         marginBottom: 20,
     },
     userTypeButton: {
-        flex: 1,
+        width: '23%',
         alignItems: 'center',
-        padding: 12,
-        marginHorizontal: 4,
+        padding: 10,
+        marginBottom: 8,
         borderRadius: 12,
         backgroundColor: '#1e293b',
         borderWidth: 2,
